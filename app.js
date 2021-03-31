@@ -63,12 +63,22 @@ const fetchExchangeRate = async (url) => {
   }
 }
 
-const getOptions = (selectedCurrency, rates) => { 
+const getOptions = async (selectedCurrency, rates) => { 
   const setSelectedAttribute = currency => 
     currency === selectedCurrency ? 'selected' : '';
 
-  return Object.keys(rates)
-    .map(currency => `<option ${setSelectedAttribute(currency)} >${currency}</option>`)
+    const currencyDesc = await result()
+    
+    
+    
+    
+    
+    return Object.keys(rates)
+    .map(currency => {
+      `<option ${setSelectedAttribute(currency)} >${currency}</option>`
+      currencyDesc[currency].valor = rates[currency]
+      console.log(currencyDesc)
+    } )
     .join('')
 }
 const showInitialInfo = ({rates}) => {
@@ -117,5 +127,39 @@ currencyOneEl.addEventListener('input', async e => {
 })
 
 init()
+
+
+
+
+// parte de testes
+
+const novaurl = 'https://free.currconv.com/api/v7/currencies?apiKey=do-not-use-this-key'
+
+const result = async () => {
+  const response = await fetch(novaurl)
+  const data = await response.json()
+  const rates = data.results
+  
+  return rates
+} 
+
+const getOpt = (rates) =>{
+    const a = Object.keys(rates)
+    //   .map(currency => `<option>${currency} </option>`)
+    //   .join('')
+     
+    let obj = {}
+    const b =  Object.values(rates)
+      .map(currency =>{
+        `<option>${currency.id} - ${currency.currencyName} </option>`;
+        obj[currency.id] = currency.currencyName
+      } )
+      .join('')
+    console.log(rates)
+
+    // currencyOneEl.innerHTML = b
+    // currencyTwoEl.innerHTML = b
+}
+
 
 

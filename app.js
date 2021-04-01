@@ -17,7 +17,7 @@ const showAlert = (err) => {
   button.setAttribute('aria-label', 'close')
   button.classList.add('btn-close')
 
-  button.addEventListener('click', ()=>{
+  button.addEventListener('click', () => {
     div.remove()
   })
 
@@ -25,13 +25,13 @@ const showAlert = (err) => {
   currenciesEl.insertAdjacentElement('afterend', div)
 }
 
-const state = (()=>{
+const state = (() => {
   let exchangeRate = {}
 
   return {
     getExchangeRate: () => exchangeRate,
     setExchangeRate: newExchangeRate => {
-      if(!newExchangeRate.rates){
+      if (!newExchangeRate.rates) {
         showAlert('O objeto precisa ter uma propriedade rates')
         return
       }
@@ -42,79 +42,77 @@ const state = (()=>{
 })()
 
 
-const getUrl = currency => `https://api.exchangeratesapi.io/latest?base=${currency}`
+// const getUrl = currency => `https://api.exchangeratesapi.io/latest?base=${currency}`
+const getUrl = currency => `https://api.exchangerate.host/latest?base=${currency}`
 
 const fetchExchangeRate = async (url) => {
   try {
     const response = await fetch(url)
-    const exchangeRateData = await response.json();
+    const data1 = await response.json();
 
+    const response2 = await fetch('./currencys.json')
+    const data2 = await response2.json()
+    const description = data2.names
 
-    if (exchangeRateData.error) {
-      throw new Error(exchangeRateData.error)
+    if (data1.error || data2.error) {
+      throw new Error('Connection problem')
     }
+    const exchangeRateData = { rates: {} }
+
+    Object.keys(data1.rates).map(item => {
+      exchangeRateData.rates[item] = { value: data1.rates[item], name: description[item] }
+    })
 
     return state.setExchangeRate(exchangeRateData)
 
   } catch (err) {
-    
+
     showAlert(err)
-    
+
   }
 }
 
-const getOptions = async (selectedCurrency, rates) => { 
-  const setSelectedAttribute = currency => 
+const getOptions = (selectedCurrency, rates) => {
+  const setSelectedAttribute = currency =>
     currency === selectedCurrency ? 'selected' : '';
-
-    const currencyDesc = await result()
-    
-    
-    
-    
-    
-    return Object.keys(rates)
+  return Object.keys(rates)
     .map(currency => {
-      `<option ${setSelectedAttribute(currency)} >${currency}</option>`
-      currencyDesc[currency].valor = rates[currency]
-      console.log(currencyDesc)
-    } )
+      return `<option ${setSelectedAttribute(currency)} value=${currency} >${currency} - ${rates[currency].name} </option>`
+    })
     .join('')
 }
-const showInitialInfo = ({rates}) => {
-  
+const showInitialInfo = ({ rates }) => {
+
   currencyOneEl.innerHTML = getOptions('USD', rates)
   currencyTwoEl.innerHTML = getOptions('BRL', rates)
 
-  showUpdatedRates({rates})
+  showUpdatedRates({ rates })
 }
 
-const init = async ()=> {
+const init = async () => {
   const url = getUrl('USD')
   const exchangeRate = await fetchExchangeRate(url)
 
-  if(exchangeRate.rates){
+  if (exchangeRate.rates) {
     showInitialInfo(exchangeRate)
   }
-  
 }
-
 const getMultipliedExchangeRate = rates => {
-  const currencyTwo = rates[currencyTwoEl.value]
-  return (timesCurrencyOneEl.value * currencyTwo ).toFixed(2)
+  const currencyTwo = rates[currencyTwoEl.value].value
+  return (timesCurrencyOneEl.value * currencyTwo).toFixed(2)
 }
 
-const showUpdatedRates = ({rates}) => {
+const showUpdatedRates = ({ rates }) => {
   convertedValueEl.textContent = getMultipliedExchangeRate(rates)
-  valuePrecisionEl.textContent = `1 ${currencyOneEl.value} = ${1 * rates[currencyTwoEl.value]} ${currencyTwoEl.value} `
+  valuePrecisionEl.textContent = `1 ${currencyOneEl.value} = ${1 * rates[currencyTwoEl.value].value} ${currencyTwoEl.value} `
 }
 
-timesCurrencyOneEl.addEventListener('input', () =>{
+timesCurrencyOneEl.addEventListener('input', () => {
   const { rates } = state.getExchangeRate()
   convertedValueEl.textContent = getMultipliedExchangeRate(rates)
 })
 
-currencyTwoEl.addEventListener('input', ()=> {
+currencyTwoEl.addEventListener('input', () => {
   const exchangeRate = state.getExchangeRate()
   showUpdatedRates(exchangeRate)
 })
@@ -128,38 +126,6 @@ currencyOneEl.addEventListener('input', async e => {
 
 init()
 
-
-
-
-// parte de testes
-
-const novaurl = 'https://free.currconv.com/api/v7/currencies?apiKey=do-not-use-this-key'
-
-const result = async () => {
-  const response = await fetch(novaurl)
-  const data = await response.json()
-  const rates = data.results
-  
-  return rates
-} 
-
-const getOpt = (rates) =>{
-    const a = Object.keys(rates)
-    //   .map(currency => `<option>${currency} </option>`)
-    //   .join('')
-     
-    let obj = {}
-    const b =  Object.values(rates)
-      .map(currency =>{
-        `<option>${currency.id} - ${currency.currencyName} </option>`;
-        obj[currency.id] = currency.currencyName
-      } )
-      .join('')
-    console.log(rates)
-
-    // currencyOneEl.innerHTML = b
-    // currencyTwoEl.innerHTML = b
-}
 
 
 
